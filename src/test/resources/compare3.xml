@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doc timestamp="2016-01-04 14:30:12">
+	<sect1>
+		<header style="none">Some header</header>
+		<body>
+			<p>The body should not matter.</p>
+		</body>
+	</sect1>
+	<sect2>
+		<header>Some other header</header>
+		<body>
+			<p>The body should REALLY not matter.</p>
+		</body>
+	</sect2>
+</doc>

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doc timestamp="2016-01-04 14:30:10">
+	<sect1>
+		<!-- some comment which is not existing in other doc -->
+		<header style="bold">Some header</header>
+		<body>
+			<p>This is some text here.</p>
+			<p>This is more text.</p> 
+		</body>
+	</sect1>
+	<sect2>
+		<header>Some other header</header>
+	</sect2>
+</doc>
