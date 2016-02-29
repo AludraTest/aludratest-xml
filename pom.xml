@@ -2,7 +2,7 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<artifactId>aludratest-xml</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
+	<version>3.1.0-SNAPSHOT</version>
 	<name>AludraTest XML Service</name>
 	<description>Enables testing and handling of XML data using the AludraTest Service API.</description>
 
