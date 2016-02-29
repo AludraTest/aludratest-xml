@@ -89,19 +89,19 @@ public class XmlFileServiceTest extends AbstractAludraServiceTest {
 	@Test
 	public void testCreateDocument_nonExisting() {
 		service.perform().createDocument("doc", "test", "some/document", "UTF-8", null);
-		assertEquals(TestStatus.FAILEDAUTOMATION, testCase.getLastTestStep().getStatus());
+		assertEquals(TestStatus.FAILEDAUTOMATION, getLastTestStep().getTestStatus());
 	}
 
 	@Test
 	public void testCreateDocument_invalidFormat() {
 		service.perform().createDocument("doc", "test", "invalid_format.xml", "UTF-8", null);
-		assertEquals(TestStatus.FAILEDAUTOMATION, testCase.getLastTestStep().getStatus());
+		assertEquals(TestStatus.FAILEDAUTOMATION, getLastTestStep().getTestStatus());
 	}
 
 	@Test
 	public void testCreateDocument_success_emptyVars() {
 		service.perform().createDocument("doc", "test", "valid_novars.xml", "UTF-8", null);
-		assertEquals(TestStatus.PASSED, testCase.getLastTestStep().getStatus());
+		assertEquals(TestStatus.PASSED, getLastTestStep().getTestStatus());
 	}
 
 	@Test
@@ -112,20 +112,20 @@ public class XmlFileServiceTest extends AbstractAludraServiceTest {
 		vars.put("someList", Arrays.asList(new String[] { "23", "42", "4711" }));
 
 		Document doc = service.perform().createDocument("doc", "test", "valid_vars.xml", "UTF-8", vars);
-		assertEquals(TestStatus.PASSED, testCase.getLastTestStep().getStatus());
+		assertEquals(TestStatus.PASSED, getLastTestStep().getTestStatus());
 		assertNotNull(doc);
 
 		// test that variables have been written into document
 		assertEquals("4711", service.perform().queryXml("doc", "test", doc, "/doc/elem/item[3]", XPathConstants.STRING));
-		assertEquals(TestStatus.PASSED, testCase.getLastTestStep().getStatus());
+		assertEquals(TestStatus.PASSED, getLastTestStep().getTestStatus());
 	}
 
 	@Test
 	public void testWriteDocument_success() throws Exception {
 		Document doc = service.perform().createDocument("doc", "test", "valid_novars.xml", "UTF-8", null);
-		assertEquals(TestStatus.PASSED, testCase.getLastTestStep().getStatus());
+		assertEquals(TestStatus.PASSED, getLastTestStep().getTestStatus());
 		service.perform().writeXml("doc", "test", doc, "test_out.xml", true);
-		assertEquals(TestStatus.PASSED, testCase.getLastTestStep().getStatus());
+		assertEquals(TestStatus.PASSED, getLastTestStep().getTestStatus());
 
 		// check that written document is in UTF-16LE, and contains matching XML declaration
 		FileInputStream fis = new FileInputStream(new File(filedir, "test_out.xml"));
@@ -150,27 +150,25 @@ public class XmlFileServiceTest extends AbstractAludraServiceTest {
 	@Test
 	public void testWriteDocument_fail() throws Exception {
 		Document doc = service.perform().createDocument("doc", "test", "valid_novars.xml", "UTF-8", null);
-		assertEquals(TestStatus.PASSED, testCase.getLastTestStep().getStatus());
+		assertEquals(TestStatus.PASSED, getLastTestStep().getTestStatus());
 
 		new File(filedir, "test_ovr.xml").createNewFile();
 		service.perform().writeXml("doc", "test", doc, "test_ovr.xml", false);
-		// TODO this should be FAILED, but FileService currently sets INCONCLUSIVE
-		// assertEquals(TestStatus.FAILED, testCase.getLastTestStep().getStatus());
-		assertEquals(TestStatus.INCONCLUSIVE, testCase.getLastTestStep().getStatus());
+		assertEquals(TestStatus.FAILED, getLastTestStep().getTestStatus());
 	}
 
 	@Test
 	public void testDiff_success() {
 		Document doc1 = service.perform().createDocument("doc", "doc1", "compare1.xml", "UTF-8", null);
 		Document doc2 = service.perform().createDocument("doc", "doc2", "compare2.xml", "UTF-8", null);
-		assertEquals(TestStatus.PASSED, testCase.getLastTestStep().getStatus());
+		assertEquals(TestStatus.PASSED, getLastTestStep().getTestStatus());
 
 		XmlComparisonSettings settings = new DatabeneXmlComparisonSettings();
 		settings.setWhitespaceRelevant(false);
 		settings.tolerateAnyDiffAt("/doc/@timestamp");
 
 		AggregateXmlDiff diff = service.perform().diff("doc", "docs", doc1, doc2, settings);
-		assertEquals(TestStatus.PASSED, testCase.getLastTestStep().getStatus());
+		assertEquals(TestStatus.PASSED, getLastTestStep().getTestStatus());
 
 		// these are all diffs we expect. Collect them for quick check (order does not matter)
 		// @formatter:off
@@ -223,14 +221,14 @@ public class XmlFileServiceTest extends AbstractAludraServiceTest {
 	public void testAssertNodeExists_fail() {
 		Document doc = service.perform().createDocument("doc", "doc1", "compare1.xml", "UTF-8", null);
 		service.verify().assertNodeExists("doc", "test", doc, "/some/xpath");
-		assertEquals(TestStatus.FAILED, testCase.getLastTestStep().getStatus());
+		assertEquals(TestStatus.FAILED, getLastTestStep().getTestStatus());
 	}
 
 	@Test
 	public void testAssertNodeExists_success() {
 		Document doc = service.perform().createDocument("doc", "doc1", "compare1.xml", "UTF-8", null);
 		service.verify().assertNodeExists("doc", "test", doc, "/doc/sect1/body/p");
-		assertEquals(TestStatus.PASSED, testCase.getLastTestStep().getStatus());
+		assertEquals(TestStatus.PASSED, getLastTestStep().getTestStatus());
 	}
 
 	@Test
@@ -238,7 +236,7 @@ public class XmlFileServiceTest extends AbstractAludraServiceTest {
 		StartsWithValidator validator = new StartsWithValidator("Some thing");
 		Document doc = service.perform().createDocument("doc", "doc1", "compare1.xml", "UTF-8", null);
 		service.verify().assertNodeMatches("doc", "test", doc, "//header", validator);
-		assertEquals(TestStatus.FAILED, testCase.getLastTestStep().getStatus());
+		assertEquals(TestStatus.FAILED, getLastTestStep().getTestStatus());
 	}
 
 	@Test
@@ -246,7 +244,7 @@ public class XmlFileServiceTest extends AbstractAludraServiceTest {
 		StartsWithValidator validator = new StartsWithValidator("Some header");
 		Document doc = service.perform().createDocument("doc", "doc1", "compare1.xml", "UTF-8", null);
 		service.verify().assertNodeMatches("doc", "test", doc, "//header", validator);
-		assertEquals(TestStatus.PASSED, testCase.getLastTestStep().getStatus());
+		assertEquals(TestStatus.PASSED, getLastTestStep().getTestStatus());
 	}
 
 	@Test
@@ -260,7 +258,7 @@ public class XmlFileServiceTest extends AbstractAludraServiceTest {
 		settings.tolerateDifferentAt("/doc/@timestamp");
 
 		service.verify().assertDocumentsEqual("doc", "docs", doc1, doc2, settings);
-		assertEquals(TestStatus.PASSED, testCase.getLastTestStep().getStatus());
+		assertEquals(TestStatus.PASSED, getLastTestStep().getTestStatus());
 	}
 
 	@Test
@@ -274,7 +272,7 @@ public class XmlFileServiceTest extends AbstractAludraServiceTest {
 		settings.tolerateAnyDiffAt("/doc/sect1/header/@style");
 
 		service.verify().assertDocumentsEqual("doc", "docs", doc1, doc2, settings);
-		assertEquals(TestStatus.FAILED, testCase.getLastTestStep().getStatus());
+		assertEquals(TestStatus.FAILED, getLastTestStep().getTestStatus());
 	}
 
 	@Test
