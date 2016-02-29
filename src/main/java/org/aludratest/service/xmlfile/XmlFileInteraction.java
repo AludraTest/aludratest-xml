@@ -98,6 +98,19 @@ public interface XmlFileInteraction extends Interaction {
 			@TechnicalArgument Map<String, Object> variables);
 
 	/**
+	 * Reads an XML document from the underlying file service. The XML document must exist.
+	 * 
+	 * @param elementType
+	 * @param elementName
+	 * @param fileName
+	 *            Name of the file, which is passed to the underlying file service.
+	 * 
+	 * @return The read XML document.
+	 */
+	@AttachResult("Read Document")
+	Document readDocument(@ElementType String elementType, @ElementName String elementName, @TechnicalLocator String fileName);
+
+	/**
 	 * Performs an XPath query on the given XML document.
 	 * 
 	 * @param elementType

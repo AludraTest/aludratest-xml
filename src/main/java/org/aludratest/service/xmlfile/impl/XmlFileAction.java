@@ -15,6 +15,7 @@
  */
 package org.aludratest.service.xmlfile.impl;
 
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -186,6 +187,13 @@ public class XmlFileAction implements XmlFileInteraction, XmlFileCondition, XmlF
 		catch (Exception e) {
 			throw new AutomationException("Could not create XML document from template", e);
 		}
+	}
+
+	@Override
+	public Document readDocument(String elementType, String elementName, String fileName) {
+		byte[] data = fileService.perform().readBinaryFile(fileName);
+		ByteArrayInputStream bais = new ByteArrayInputStream(data);
+		return contentHandler.readDocument(bais);
 	}
 
 	private void documentToXml(Document document, Writer writer) throws IOException {
