@@ -196,7 +196,7 @@ public class XmlFileAction implements XmlFileInteraction, XmlFileCondition, XmlF
 		return contentHandler.readDocument(bais);
 	}
 
-	private void documentToXml(Document document, Writer writer) throws IOException {
+	private static void documentToXml(Document document, Writer writer) throws IOException {
 		DOMSource src = new DOMSource(document);
 		StreamResult res = new StreamResult(writer);
 
@@ -214,7 +214,7 @@ public class XmlFileAction implements XmlFileInteraction, XmlFileCondition, XmlF
 		}
 	}
 
-	private Attachment createErrorAttachment(String message, IOException e) {
+	private static Attachment createErrorAttachment(String message, IOException e) {
 		StringWriter sw = new StringWriter();
 		sw.append(message).append("\n");
 		e.printStackTrace(new PrintWriter(sw));
