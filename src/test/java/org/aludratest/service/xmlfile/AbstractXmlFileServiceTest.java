@@ -105,6 +105,15 @@ public abstract class AbstractXmlFileServiceTest extends AbstractAludraServiceTe
 		return true;
 	}
 	
+    public static String renderDetails(XmlDiffDetail detail) {
+        return "expected=" + convert(detail.getExpected()) + ", " 
+        		+ "actual=" + convert(detail.getActual()) + ", "
+                + "objectClassifier=" + detail.getObjectClassifier() + ", " 
+        		+ "type=" + detail.getXmlDiffType() + ", " 
+                + "locatorOfExpected=" + detail.getLocatorOfExpected() + ", " 
+        		+ "locatorOfActual=" + detail.getLocatorOfActual();
+    }
+
 	protected static String convert(Object node) throws ConversionException {
 		if (node instanceof CDATASection)
 			return "<![CDATA[" + ((CDATASection) node).getTextContent() + "]]>";

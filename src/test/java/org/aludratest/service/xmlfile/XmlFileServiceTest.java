@@ -135,7 +135,7 @@ public class XmlFileServiceTest extends AbstractXmlFileServiceTest {
 		settings.setWhitespaceRelevant(false);
 		settings.tolerateAnyDiffAt("/doc/@timestamp");
 
-		AggregateXmlDiff diff = service.perform().diff("doc", "docs", doc1, doc2, settings);
+		AggregateXmlDiff actualDiff = service.perform().diff("doc", "docs", doc1, doc2, settings);
 		assertEquals(TestStatus.PASSED, getLastTestStep().getTestStatus());
 
 		// these are all diffs we expect. Collect them for quick check (order does not matter)
@@ -149,18 +149,26 @@ public class XmlFileServiceTest extends AbstractXmlFileServiceTest {
 				};
 		// @formatter:on
 
-		for (DatabeneXmlDiffDetail dd : expectedDiffs) {
+		for (DatabeneXmlDiffDetail expectedDetail : expectedDiffs) {
 			// a simple "contains" would not work because expected / actual objects are Nodes
 			boolean found = false;
-			for (XmlDiffDetail d : diff.getXmlDetails()) {
-				if (equals(d, dd)) {
+			for (XmlDiffDetail actualDetail : actualDiff.getXmlDetails()) {
+				if (equals(actualDetail, expectedDetail)) {
 					found = true;
 					break;
 				}
 			}
 			
 			if (!found) {
-				fail("Expected diff detail not detected by XML service: " + dd);
+				System.out.println("Expected detail:");
+				System.out.println("\t" + renderDetails(expectedDetail));
+				System.out.println();
+				System.out.println("Actual details:");
+				for (XmlDiffDetail d : actualDiff.getXmlDetails()) {
+					System.out.println("\t" + renderDetails(d));
+				}
+				System.out.println();
+				fail("Expected diff detail not detected by XML service: " + expectedDetail);
 			}
 		}
 	}
