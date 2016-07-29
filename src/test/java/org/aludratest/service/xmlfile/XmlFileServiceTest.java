@@ -22,7 +22,6 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.io.ByteArrayOutputStream;
-import java.io.File;
 import java.io.FileInputStream;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -38,47 +37,13 @@ import org.aludratest.content.xml.util.DatabeneXmlDiffDetail;
 import org.aludratest.service.ComponentId;
 import org.aludratest.service.xmlfile.impl.XmlFileServiceImpl;
 import org.aludratest.testcase.TestStatus;
-import org.aludratest.testing.service.AbstractAludraServiceTest;
 import org.aludratest.util.validator.StartsWithValidator;
-import org.databene.commons.ConversionException;
 import org.databene.commons.IOUtil;
-import org.databene.commons.NullSafeComparator;
-import org.databene.commons.SystemInfo;
-import org.databene.commons.converter.ToStringConverter;
-import org.databene.commons.xml.XMLUtil;
 import org.databene.formats.compare.DiffDetailType;
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Test;
-import org.w3c.dom.CDATASection;
 import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.w3c.dom.Text;
 
-public class XmlFileServiceTest extends AbstractAludraServiceTest {
-
-	protected XmlFileService service;
-
-	protected File filedir;
-
-	private static final String LF = SystemInfo.getLineSeparator();
-
-	@Before
-	public void setUp() throws Exception {
-		File basedir = new File("").getAbsoluteFile();
-		System.setProperty("xml.test.base.dir", basedir.getAbsolutePath());
-		filedir = new File(basedir, "target/xmlfile-test");
-		filedir.mkdirs();
-		service = getLoggingService(XmlFileService.class, "unittest");
-	}
-
-	@After
-	public void tearDown() throws Exception {
-		if (this.service != null) {
-			this.service.close();
-		}
-	}
+public class XmlFileServiceTest extends AbstractXmlFileServiceTest {
 
 	@Test
 	public void testDefaultImplementation() {
@@ -110,8 +75,11 @@ public class XmlFileServiceTest extends AbstractAludraServiceTest {
 		vars.put("someText", "Plain text.");
 		vars.put("someElem", "<elem comment=\"Some element.\" />.");
 		vars.put("someList", Arrays.asList(new String[] { "23", "42", "4711" }));
+		
+		Map<String, Object> context = new HashMap<String, Object>();
+		context.put("data", vars);
 
-		Document doc = service.perform().createDocument("doc", "test", "valid_vars.xml", "UTF-8", vars);
+		Document doc = service.perform().createDocument("doc", "test", "valid_vars.xml", "UTF-8", context);
 		assertEquals(TestStatus.PASSED, getLastTestStep().getTestStatus());
 		assertNotNull(doc);
 
@@ -128,7 +96,7 @@ public class XmlFileServiceTest extends AbstractAludraServiceTest {
 		assertEquals(TestStatus.PASSED, getLastTestStep().getTestStatus());
 
 		// check that written document is in UTF-16LE, and contains matching XML declaration
-		FileInputStream fis = new FileInputStream(new File(filedir, "test_out.xml"));
+		FileInputStream fis = new FileInputStream(fileOfName("test_out.xml"));
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		IOUtil.transfer(fis, baos);
 		fis.close();
@@ -152,7 +120,7 @@ public class XmlFileServiceTest extends AbstractAludraServiceTest {
 		Document doc = service.perform().createDocument("doc", "test", "valid_novars.xml", "UTF-8", null);
 		assertEquals(TestStatus.PASSED, getLastTestStep().getTestStatus());
 
-		new File(filedir, "test_ovr.xml").createNewFile();
+		fileOfName("test_ovr.xml").createNewFile();
 		service.perform().writeXml("doc", "test", doc, "test_ovr.xml", false);
 		assertEquals(TestStatus.FAILED, getLastTestStep().getTestStatus());
 	}
@@ -167,32 +135,40 @@ public class XmlFileServiceTest extends AbstractAludraServiceTest {
 		settings.setWhitespaceRelevant(false);
 		settings.tolerateAnyDiffAt("/doc/@timestamp");
 
-		AggregateXmlDiff diff = service.perform().diff("doc", "docs", doc1, doc2, settings);
+		AggregateXmlDiff actualDiff = service.perform().diff("doc", "docs", doc1, doc2, settings);
 		assertEquals(TestStatus.PASSED, getLastTestStep().getTestStatus());
 
 		// these are all diffs we expect. Collect them for quick check (order does not matter)
 		// @formatter:off
 		DatabeneXmlDiffDetail[] expectedDiffs = new DatabeneXmlDiffDetail[] { 
-				new DatabeneXmlDiffDetail("bold", "none", "attribute", DiffDetailType.DIFFERENT, null, "/doc/sect1/header/@style"),
-				new DatabeneXmlDiffDetail("Some header", "Some Header", "element text", DiffDetailType.DIFFERENT, null, "/doc/sect1/header"),
-				new DatabeneXmlDiffDetail("This is some text here.", "This is some here.", "element text", DiffDetailType.DIFFERENT, null, "/doc/sect1/body/p[1]"),
-				new DatabeneXmlDiffDetail("<p>This is more text.</p>", null, "list element", DiffDetailType.MISSING, "/doc/sect1/body/p[2]", null),
-				new DatabeneXmlDiffDetail(null, "<body>" + LF + "\t\t\t<p>A body which does not exist in other document.</p>" + LF + "\t\t</body>", "list element", DiffDetailType.UNEXPECTED, null, "/doc/sect2/body")
+				new DatabeneXmlDiffDetail("bold", "none", "attribute value", DiffDetailType.DIFFERENT, "/doc/sect1/header/@style", "/doc/sect1/header/@style"),
+				new DatabeneXmlDiffDetail("Some header", "Some Header", "element text", DiffDetailType.DIFFERENT, "/doc/sect1/header/text()", "/doc/sect1/header/text()"),
+				new DatabeneXmlDiffDetail("This is some text here.", "This is some here.", "element text", DiffDetailType.DIFFERENT, "/doc/sect1/body/p[1]/text()", "/doc/sect1/body/p/text()"),
+				new DatabeneXmlDiffDetail("<p>This is more text.</p>", null, "element", DiffDetailType.MISSING, "/doc/sect1/body/p[2]", null),
+				new DatabeneXmlDiffDetail(null, "<body>" + LF + "\t\t\t<p>A body which does not exist in other document.</p>" + LF + "\t\t</body>", "element", DiffDetailType.UNEXPECTED, null, "/doc/sect2/body")
 				};
 		// @formatter:on
 
-		for (DatabeneXmlDiffDetail dd : expectedDiffs) {
+		for (DatabeneXmlDiffDetail expectedDetail : expectedDiffs) {
 			// a simple "contains" would not work because expected / actual objects are Nodes
 			boolean found = false;
-			for (XmlDiffDetail d : diff.getXmlDetails()) {
-				if (equals(d, dd)) {
+			for (XmlDiffDetail actualDetail : actualDiff.getXmlDetails()) {
+				if (equals(actualDetail, expectedDetail)) {
 					found = true;
 					break;
 				}
 			}
 			
 			if (!found) {
-				fail("Expected diff detail \"" + dd + "\" not detected by XML service");
+				System.out.println("Expected detail:");
+				System.out.println("\t" + renderDetails(expectedDetail));
+				System.out.println();
+				System.out.println("Actual details:");
+				for (XmlDiffDetail d : actualDiff.getXmlDetails()) {
+					System.out.println("\t" + renderDetails(d));
+				}
+				System.out.println();
+				fail("Expected diff detail not detected by XML service: " + expectedDetail);
 			}
 		}
 	}
@@ -291,59 +267,4 @@ public class XmlFileServiceTest extends AbstractAludraServiceTest {
 		assertTrue(service.check().areDocumentsEqual("doc", "docs", doc1, doc2, settings));
 	}
 
-	private static boolean equals(XmlDiffDetail diff1, DatabeneXmlDiffDetail diff2) {
-		if (diff1.getXmlDiffType() != diff2.getXmlDiffType()) {
-			return false;
-		}
-		
-		// check string properties
-		if (!NullSafeComparator.equals(diff1.getLocatorOfActual(), diff2.getLocatorOfActual())
-				|| !NullSafeComparator.equals(diff1.getLocatorOfExpected(), diff2.getLocatorOfExpected())
-				|| !NullSafeComparator.equals(diff1.getObjectClassifier(), diff2.getObjectClassifier())) {
-			return false;
-		}
-		
-		if (!compareNodeSafe(diff1.getActual(), diff2.getActual())
-				|| !compareNodeSafe(diff1.getExpected(), diff2.getExpected())) {
-			return false;
-		}
-		
-		return true;
-	}
-	
-	private static boolean compareNodeSafe(Object o1, Object o2) {
-		if (o1 == null && o2 != null) {
-			return false;
-		}
-		if (o1 != null) {
-			if ((o1 instanceof String) && !o1.equals(o2)) {
-				return false;
-			}
-			
-			if (o1 instanceof Node) {
-				String s1 = convert(o1);
-				if (!s1.equals(o2)) {
-					return false;
-				}
-			}
-		}
-		
-		return true;
-	}
-	
-	private static String convert(Object node) throws ConversionException {
-		if (node instanceof CDATASection)
-			return "<![CDATA[" + ((CDATASection) node).getTextContent() + "]]>";
-		else if (node instanceof Text) 
-			return ((Text) node).getTextContent();
-		else if (node instanceof Element)
-			return XMLUtil.format((Element) node).trim();
-		else if (node instanceof Document)
-			return XMLUtil.format((Document) node);
-		else if (node instanceof String)
-			return node.toString();
-		else
-			return ToStringConverter.convert(node, "");
-	}
-	
 }

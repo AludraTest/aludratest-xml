@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <doc>
-	<elem comment="${someText}" />
-	${someElem}
+	<elem comment="${data.someText}" />
+	${data.someElem}
 	
 	<elem>
-	<#list someList as item>
+	<#list data.someList as item>
 		<item>${item}</item>
 	</#list>
 	</elem>
