@@ -15,6 +15,7 @@
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<aludratest.version>3.1.0-SNAPSHOT</aludratest.version>
+		<aludratest.testing-harness.version>3.1.0-SNAPSHOT</aludratest.testing-harness.version>
 	</properties>
 
 	<dependencies>
@@ -26,7 +27,7 @@
 		<dependency>
 			<groupId>org.aludratest</groupId>
 			<artifactId>aludratest-testing-harness</artifactId>
-			<version>3.1.0-SNAPSHOT</version>
+			<version>${aludratest.testing-harness.version}</version>
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
